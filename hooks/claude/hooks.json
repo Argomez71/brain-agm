@@ -1,0 +1,16 @@
+{
+  "description": "brain-agm - Hook de revisión automática cada 15 minutos",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${HOME}/.claude/skills/brain-agm/hooks/check_memory.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
