@@ -1,135 +1,135 @@
 # ============================================================
-# brain-agm: Sistema de memoria compartida
-# Instalado: 2026-11-05
-# Versión: 1.0.0
+# brain-agm: Shared Memory System
+# Installed: 2026-11-05
+# Version: 1.0.0
 # ============================================================
 
-# Sistema brain-agm
+# brain-agm System
 
-Este sistema guarda automáticamente memoria entre sesiones para que no pierdas contexto al abrir nuevas sesiones de Claude Code.
+This system automatically saves memory across sessions so you don't lose context when opening new Claude Code sessions.
 
-## Qué Guarda
+## What It Saves
 
-- **Planes** ejecutados o cerrados
-- **Decisiones** técnicas importantes
-- **Problemas** encontrados y resueltos
-- **Cualquier cosa** que pidas explícitamente guardar
+- **Plans** executed or closed
+- **Decisions** important technical
+- **Problems** found and solved
+- **Anything** you explicitly ask to save
 
-Las memorias se guardan en `~/Documents/brain-agm/[proyecto]/` en formato Markdown y son accesibles desde cualquier sesión e IDE.
+Memories are saved in `~/Documents/brain-agm/[project]/` in Markdown format and are accessible from any session and IDE.
 
-## Cuándo Usar brain-agm
+## When to Use brain-agm
 
-### Guardar Memoria
+### Save Memory
 
-Guarda automáticamente cuando:
-- Completas o cierras un plan
-- Tomas una decisión técnica no obvia
-- Resuelves un problema complejo
-- El usuario dice: "guarda esto en memoria", "recuerda esto", "anota esto"
+Saves automatically when:
+- You complete or close a plan
+- You make a non-obvious technical decision
+- You solve a complex problem
+- User says: "save this to memory", "remember this", "note this"
 
-### Buscar Memoria
+### Search Memory
 
-Busca automáticamente cuando:
-- El usuario pregunta sobre trabajo anterior del proyecto actual
-- Detectas que la pregunta se refiere a una decisión pasada del mismo proyecto
-- El usuario dice: "busca en memoria", "qué hicimos con X", "por qué decidimos Y"
+Searches automatically when:
+- User asks about previous work in current project
+- You detect question refers to past decision in same project
+- User says: "search memory", "what did we do with X", "why did we decide Y"
 
-**Importante**: Busca SOLO en el proyecto actual por defecto. Solo usa `--all-projects` cuando el usuario diga explícitamente "busca en otros proyectos" o mencione un proyecto específico.
+**Important**: Searches ONLY in current project by default. Only use `--all-projects` when user explicitly says "search in other projects" or mentions a specific project.
 
-### Actualizar Memoria
+### Update Memory
 
-Actualiza cuando:
-- Un plan o decisión cambia
-- El usuario corrige información guardada
-- Se agregan detalles a algo ya guardado
+Updates when:
+- A plan or decision changes
+- User corrects saved information
+- Details are added to something already saved
 
-## Formato de Memoria
+## Memory Format
 
-Toda memoria debe incluir:
+Every memory must include:
 
-**Breve descripción**: 1-2 líneas de resumen  
-**El qué**: Qué se hizo, decidió o resolvió (concreto, con referencias a archivos/líneas si aplica)  
-**El por qué**: Contexto, razón, trade-offs de la decisión
+**Brief description**: 1-2 lines summary  
+**What**: What was done, decided or solved (concrete, with file/line references if applicable)  
+**Why**: Context, reason, trade-offs of the decision
 
-Ejemplo:
+Example:
 ```markdown
-## Breve descripción
-Implementación OAuth 2.0 con Google y Microsoft
+## Brief description
+OAuth 2.0 implementation with Google and Microsoft
 
-## El qué
-Se implementó flujo OAuth 2.0:
-- Archivos: src/auth/oauth.py:45-120
+## What
+Implemented OAuth 2.0 flow:
+- Files: src/auth/oauth.py:45-120
 - Endpoints: /auth/login, /auth/callback, /auth/logout
 - Providers: Google, Microsoft
 
-## El por qué
-**Contexto**: Cliente requiere SSO para política de seguridad
+## Why
+**Context**: Client requires SSO for security policy
 
-**Decisiones clave**:
-1. authlib sobre python-oauth2 - mejor soporte PKCE
-2. Redis para tokens - TTL automático
+**Key decisions**:
+1. authlib over python-oauth2 - better PKCE support
+2. Redis for tokens - automatic TTL
 
 **Trade-offs**:
-- Más complejo pero requerido por política
+- More complex but required by policy
 ```
 
-## Comandos
+## Commands
 
-**Guardar** (crear archivo temporal primero con el contenido):
+**Save** (create temp file first with content):
 ```powershell
 # Windows
 python ~/.claude/skills/brain-agm/scripts/save_memory.py `
-  --project [nombre] `
+  --project [name] `
   --type [plan|decision|problem|user-request] `
-  --title "titulo-descriptivo" `
-  --content [ruta-archivo-temporal] `
-  --tags "tag1,tag2"  # Opcional
+  --title "descriptive-title" `
+  --content [temp-file-path] `
+  --tags "tag1,tag2"  # Optional
 
 # Mac/Linux
 python ~/.claude/skills/brain-agm/scripts/save_memory.py \
-  --project [nombre] \
+  --project [name] \
   --type [plan|decision|problem|user-request] \
-  --title "titulo-descriptivo" \
-  --content [ruta-archivo-temporal] \
+  --title "descriptive-title" \
+  --content [temp-file-path] \
   --tags "tag1,tag2"
 ```
 
-**Buscar en proyecto actual**:
+**Search in current project**:
 ```bash
 python ~/.claude/skills/brain-agm/scripts/search_memory.py \
-  --project [nombre] \
-  --query "texto a buscar"
+  --project [name] \
+  --query "text to search"
 ```
 
-**Buscar en todos los proyectos** (solo cuando usuario lo pida):
+**Search in all projects** (only when user requests it):
 ```bash
 python ~/.claude/skills/brain-agm/scripts/search_memory.py \
   --all-projects \
-  --query "texto a buscar"
+  --query "text to search"
 ```
 
-## Workflow Rápido
+## Quick Workflow
 
-### Guardar:
-1. Detectar momento importante
-2. Crear archivo temporal con contenido (sin frontmatter)
-3. Ejecutar save_memory.py
-4. Confirmar al usuario: "✓ Guardé esto en memoria: [título]"
+### Save:
+1. Detect important moment
+2. Create temp file with content (without frontmatter)
+3. Execute save_memory.py
+4. Confirm to user: "✓ Saved to memory: [title]"
 
-### Buscar:
-1. Detectar pregunta sobre trabajo anterior
-2. Ejecutar search_memory.py (sin `--all-projects` por defecto)
-3. Leer archivos de memorias encontradas
-4. Responder usando el contenido: "Encontré X memoria(s): [títulos]"
+### Search:
+1. Detect question about previous work
+2. Execute search_memory.py (without `--all-projects` by default)
+3. Read found memory files
+4. Respond using content: "Found X memory(ies): [titles]"
 
-## Notas
+## Notes
 
-- **Proyecto detectado automáticamente** del nombre de carpeta actual
-- **Búsquedas son SOLO proyecto actual por defecto** - `--all-projects` requiere request explícito
-- **Siempre mostrar al usuario** qué memorias se encontraron/guardaron
-- **Hacer referencia explícita** a las memorias usadas ("según memoria de [fecha]")
-- **No guardar información sensible** - sin credenciales, API keys, PII
+- **Project auto-detected** from current folder name
+- **Searches are ONLY current project by default** - `--all-projects` requires explicit request
+- **Always show user** what memories were found/saved
+- **Make explicit references** to used memories ("according to memory from [date]")
+- **Don't save sensitive information** - no credentials, API keys, PII
 
 # ============================================================
-# Fin de brain-agm
+# End of brain-agm
 # ============================================================

@@ -1,76 +1,76 @@
 ---
 name: brain-agm
-description: Sistema de memoria compartida entre sesiones para Windsurf/Devin. Se activa cuando el usuario pregunta sobre trabajo anterior del proyecto actual, completa un plan, toma una decisión importante, o pide explícitamente guardar en memoria. Busca y carga memorias relevantes del proyecto actual. Solo busca en otros proyectos cuando el usuario lo pide explícitamente.
+description: Shared memory system across sessions for Windsurf/Devin. Activates when user asks about previous work in current project, completes a plan, makes an important decision, or explicitly asks to save to memory. Searches and loads relevant memories from current project. Only searches other projects when user explicitly requests it.
 ---
 
-# brain-agm: Sistema de Memoria Compartida
+# brain-agm: Shared Memory System
 
-Sistema para retener información importante entre sesiones de Devin/Windsurf. Las memorias se guardan en `~/Documents/brain-agm/[proyecto]/` y son accesibles desde cualquier sesión e IDE.
+System for retaining important information across Devin/Windsurf sessions. Memories are saved in `~/Documents/brain-agm/[project]/` and are accessible from any session and IDE.
 
-## Cuándo Usar
+## When to Use
 
-### Guardar Memoria
+### Save Memory
 
-Guarda automáticamente cuando:
-- Completas o cierras un plan
-- Tomas una decisión técnica importante
-- Resuelves un problema complejo
-- El usuario dice: "guarda esto en memoria", "recuerda esto"
+Saves automatically when:
+- You complete or close a plan
+- You make an important technical decision
+- You solve a complex problem
+- User says: "save this to memory", "remember this"
 
-### Buscar Memoria
+### Search Memory
 
-Busca cuando:
-- Usuario pregunta sobre trabajo anterior del proyecto actual
-- Usuario dice: "busca en memoria", "qué hicimos con X"
-- **Solo busca en otros proyectos** cuando usuario dice explícitamente "busca en otros proyectos"
+Searches when:
+- User asks about previous work in current project
+- User says: "search memory", "what did we do with X"
+- **Only search in other projects** when user explicitly says "search in other projects"
 
-## Comandos
+## Commands
 
-### Guardar
+### Save
 
 ```bash
-# 1. Crear archivo temporal con contenido (sin frontmatter)
-# 2. Ejecutar script
+# 1. Create temp file with content (without frontmatter)
+# 2. Execute script
 python ~/.codeium/windsurf/skills/brain-agm/scripts/save_memory.py \
-  --project [nombre] \
+  --project [name] \
   --type [plan|decision|problem|user-request] \
-  --title "titulo-descriptivo" \
-  --content [archivo-temporal]
+  --title "descriptive-title" \
+  --content [temp-file]
 ```
 
-### Buscar
+### Search
 
 ```bash
-# Proyecto actual (default)
+# Current project (default)
 python ~/.codeium/windsurf/skills/brain-agm/scripts/search_memory.py \
-  --project [nombre] \
-  --query "texto"
+  --project [name] \
+  --query "text"
 
-# Todos los proyectos (solo cuando usuario lo pida)
+# All projects (only when user requests it)
 python ~/.codeium/windsurf/skills/brain-agm/scripts/search_memory.py \
   --all-projects \
-  --query "texto"
+  --query "text"
 ```
 
-## Formato de Memoria
+## Memory Format
 
 ```markdown
-## Breve descripción
-[1-2 líneas]
+## Brief description
+[1-2 lines]
 
-## El qué
-[Qué se hizo - específico con archivos/líneas]
+## What
+[What was done - specific with files/lines]
 
-## El por qué
-**Contexto**: [Situación]
-**Decisiones clave**: [Lista]
-**Trade-offs**: [Pros y contras]
+## Why
+**Context**: [Situation]
+**Key decisions**: [List]
+**Trade-offs**: [Pros and cons]
 ```
 
-## Notas
+## Notes
 
-- Búsquedas son SOLO proyecto actual por defecto
-- Siempre mostrar al usuario qué se encontró/guardó
-- No guardar información sensible
+- Searches are ONLY current project by default
+- Always show user what was found/saved
+- Don't save sensitive information
 
 ChaChau !!!

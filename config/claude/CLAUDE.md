@@ -1,29 +1,29 @@
 # ============================================================
-# brain-agm: Sistema de memoria compartida
-# Instalado: 2026-11-05
+# brain-agm: Shared Memory System
+# Installed: 2026-11-05
 # ============================================================
 
-# Configuración Global de Claude Code
+# Claude Code Global Configuration
 
-Lee las reglas globales que incluyen el sistema brain-agm:
+Read global rules that include brain-agm system:
 
 @~/.claude/AGENTS.md
 
-## Notas sobre brain-agm
+## Notes about brain-agm
 
-- El sistema brain-agm guarda memoria entre sesiones automáticamente
-- Las memorias se guardan en `~/Documents/brain-agm/[proyecto]/`
-- El skill brain-agm se carga automáticamente desde `~/.claude/skills/`
-- Cada proyecto puede tener su propio AGENTS.md que se combina con este global
+- brain-agm system saves memory across sessions automatically
+- Memories are saved in `~/Documents/brain-agm/[project]/`
+- brain-agm skill loads automatically from `~/.claude/skills/`
+- Each project can have its own AGENTS.md that combines with this global one
 
-## Cómo Funciona
+## How It Works
 
-Cuando abres cualquier proyecto en Claude Code:
-1. Este CLAUDE.md global se carga primero
-2. Carga AGENTS.md que contiene las instrucciones de brain-agm
-3. El skill brain-agm se activa automáticamente cuando es relevante
-4. Las memorias del proyecto actual están disponibles para consulta
+When you open any project in Claude Code:
+1. This global CLAUDE.md loads first
+2. Loads AGENTS.md containing brain-agm instructions
+3. brain-agm skill activates automatically when relevant
+4. Current project memories are available for query
 
 # ============================================================
-# Fin de brain-agm
+# End of brain-agm
 # ============================================================

@@ -1,76 +1,76 @@
-## Breve descripción
-[1-2 líneas de resumen ejecutivo - qué se hizo/decidió/resolvió]
+## Brief description
+[1-2 lines executive summary - what was done/decided/solved]
 
-## El qué
-[Descripción específica y concreta de lo que se hizo, decidió o resolvió]
+## What
+[Specific concrete description of what was done, decided or solved]
 
-**Detalles técnicos**:
-- Archivos modificados: [ruta:líneas]
-- Comandos ejecutados: [si aplica]
-- Configuración cambiada: [si aplica]
-- Código clave: [si aplica]
+**Technical details**:
+- Modified files: [path:lines]
+- Executed commands: [if applicable]
+- Changed configuration: [if applicable]
+- Key code: [if applicable]
 
-## El por qué
+## Why
 
-**Contexto**: [Situación que llevó a esto - el problema o necesidad]
+**Context**: [Situation that led to this - the problem or need]
 
-**Decisiones clave**:
-1. [Decisión 1 con su razón]
-2. [Decisión 2 con su razón]
-3. [Decisión 3 con su razón]
+**Key decisions**:
+1. [Decision 1 with its reason]
+2. [Decision 2 with its reason]
+3. [Decision 3 with its reason]
 
-**Alternativas consideradas**:
-- [Alternativa 1]: [Por qué se descartó]
-- [Alternativa 2]: [Por qué se descartó]
+**Alternatives considered**:
+- [Alternative 1]: [Why it was discarded]
+- [Alternative 2]: [Why it was discarded]
 
 **Trade-offs**:
-- [Pro 1 vs Contra 1]
-- [Pro 2 vs Contra 2]
+- [Pro 1 vs Con 1]
+- [Pro 2 vs Con 2]
 
-## Referencias (opcional)
-- PR: #[número]
-- Issue: #[número]
-- Documentación: [ruta o URL]
-- Memorias relacionadas: [títulos de otras memorias]
-- Conversación: [enlace o referencia]
+## References (optional)
+- PR: #[number]
+- Issue: #[number]
+- Documentation: [path or URL]
+- Related memories: [titles of other memories]
+- Conversation: [link or reference]
 
 ---
 
-**Ejemplo de uso**:
+**Usage example**:
 
 ```markdown
-## Breve descripción
-Implementación de autenticación OAuth 2.0 con Google y Microsoft como proveedores
+## Brief description
+OAuth 2.0 authentication implementation with Google and Microsoft as providers
 
-## El qué
-Se implementó flujo completo de OAuth 2.0:
+## What
+Implemented complete OAuth 2.0 flow:
 
-**Detalles técnicos**:
-- Archivos: src/auth/oauth.py:45-120, src/config/providers.py:12-30
+**Technical details**:
+- Files: src/auth/oauth.py:45-120, src/config/providers.py:12-30
 - Endpoints: /auth/login, /auth/callback, /auth/logout
 - Providers: Google OAuth 2.0, Microsoft Azure AD
-- Storage: Redis con TTL de 7 días para tokens
+- Storage: Redis with 7-day TTL for tokens
 
-## El por qué
+## Why
 
-**Contexto**: El cliente requiere Single Sign-On corporativo para cumplir con su política de seguridad. El sistema anterior usaba credenciales locales que no cumplen con los nuevos requisitos.
+**Context**: Client requires corporate Single Sign-On to comply with their security policy. Previous system used local credentials that don't meet new requirements.
 
-**Decisiones clave**:
-1. authlib sobre python-oauth2 - mejor soporte para PKCE y mantenimiento más activo
-2. Redis para tokens - TTL automático sin lógica manual, volumen bajo (<10k usuarios)
-3. No implementar refresh tokens en esta fase - cliente prefiere re-autenticación cada 7 días
+**Key decisions**:
+1. authlib over python-oauth2 - better PKCE support and more active maintenance
+2. Redis for tokens - automatic TTL without manual logic, low volume (<10k users)
+3. Don't implement refresh tokens this phase - client prefers re-authentication every 7 days
 
-**Alternativas consideradas**:
-- Base de datos principal para tokens: Descartada porque requiere lógica de expiración manual
-- Auth0 como servicio: Descartada por costo ($200/mes) vs complejidad baja
+**Alternatives considered**:
+- Main database for tokens: Discarded because it requires manual expiration logic
+- Auth0 as service: Discarded due to cost ($200/month) vs low complexity
 
 **Trade-offs**:
-- Más complejo que auth local pero es requerimiento del cliente
-- Dependencia de servicios externos (Google/MS) mitigada con retry logic y fallbacks
-- Redis como dependencia adicional pero ya lo usamos para cache
+- More complex than local auth but it's a client requirement
+- External service dependency (Google/MS) mitigated with retry logic and fallbacks
+- Redis as additional dependency but we already use it for cache
 
-## Referencias
+## References
 - PR: #234
-- Documentación OAuth: docs/auth/oauth-flow.md
-- Decisión de no usar refresh tokens: [memoria: decision-no-refresh-tokens]
+- OAuth documentation: docs/auth/oauth-flow.md
+- Decision to not use refresh tokens: [memory: decision-no-refresh-tokens]
 ```

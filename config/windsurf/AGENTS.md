@@ -1,62 +1,62 @@
 # ============================================================
-# brain-agm: Sistema de memoria compartida
-# Instalado: 2026-11-05
-# Versión: 1.0.0
+# brain-agm: Shared Memory System
+# Installed: 2026-11-05
+# Version: 1.0.0
 # ============================================================
 
-# Sistema brain-agm para Windsurf/Devin
+# brain-agm System for Windsurf/Devin
 
-Sistema de memoria compartida entre sesiones. Guarda automáticamente planes, decisiones y problemas en `~/Documents/brain-agm/[proyecto]/`.
+Shared memory system across sessions. Automatically saves plans, decisions and problems in `~/Documents/brain-agm/[project]/`.
 
-## Cuándo Guardar
+## When to Save
 
-- Completas un plan
-- Tomas una decisión técnica importante
-- Resuelves un problema complejo
-- Usuario dice: "guarda esto en memoria"
+- You complete a plan
+- You make an important technical decision
+- You solve a complex problem
+- User says: "save this to memory"
 
-## Cuándo Buscar
+## When to Search
 
-- Usuario pregunta sobre trabajo anterior del proyecto actual
-- Usuario dice: "busca en memoria", "qué hicimos con X"
-- **Solo busca en otros proyectos** cuando usuario lo pida explícitamente
+- User asks about previous work in current project
+- User says: "search memory", "what did we do with X"
+- **Only search in other projects** when user explicitly requests it
 
-## Comandos Principales
+## Main Commands
 
-**Guardar**:
+**Save**:
 ```bash
 python ~/.codeium/windsurf/skills/brain-agm/scripts/save_memory.py \
   --type [plan|decision|problem|user-request] \
-  --title "titulo" \
-  --content [archivo-temporal]
+  --title "title" \
+  --content [temp-file]
 ```
 
-**Buscar** (proyecto actual):
+**Search** (current project):
 ```bash
 python ~/.codeium/windsurf/skills/brain-agm/scripts/search_memory.py \
-  --query "texto"
+  --query "text"
 ```
 
-**Buscar** (todos los proyectos - solo cuando usuario lo pida):
+**Search** (all projects - only when user requests it):
 ```bash
 python ~/.codeium/windsurf/skills/brain-agm/scripts/search_memory.py \
   --all-projects \
-  --query "texto"
+  --query "text"
 ```
 
-## Formato de Memoria
+## Memory Format
 
-Toda memoria debe tener:
-- **Breve descripción**: 1-2 líneas
-- **El qué**: Específico con archivos/líneas
-- **El por qué**: Contexto, decisiones, trade-offs
+Every memory must have:
+- **Brief description**: 1-2 lines
+- **What**: Specific with files/lines
+- **Why**: Context, decisions, trade-offs
 
-## Reglas
+## Rules
 
-- Búsquedas SOLO en proyecto actual por defecto
-- Mostrar siempre al usuario qué se encontró/guardó
-- No guardar información sensible (credenciales, API keys)
+- Searches ONLY in current project by default
+- Always show user what was found/saved
+- Don't save sensitive information (credentials, API keys)
 
 # ============================================================
-# Fin de brain-agm
+# End of brain-agm
 # ============================================================

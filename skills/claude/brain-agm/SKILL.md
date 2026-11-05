@@ -1,123 +1,126 @@
 ---
 name: brain-agm
-description: Sistema de memoria compartida entre sesiones. Se activa cuando 1) Usuario pregunta sobre trabajo anterior del proyecto actual, 2) Se completa/cierra un plan, 3) Se toma una decisión importante, 4) Usuario pide explícitamente guardar en memoria, 5) Cada 15 minutos (via hook) para revisar si hay algo nuevo. Busca y carga memorias relevantes del proyecto actual. Solo busca en otros proyectos cuando el usuario lo pide explícitamente.
+description: Shared memory system across sessions. Activates when 1) User asks about previous work in current project, 2) A plan is completed/closed, 3) An important decision is made, 4) User explicitly asks to save to memory, 5) Every 15 minutes (via hook) to review if there's something new. Searches and loads relevant memories from current project. Only searches other projects when user explicitly requests it.
 version: 1.0.0
 tools: Bash, PowerShell, Read, Write
 ---
 
-# brain-agm: Sistema de Memoria Compartida
+# brain-agm: Shared Memory System
 
-Sistema para retener información importante entre sesiones de Claude Code. Las memorias se guardan en `~/Documents/brain-agm/[proyecto]/` y son accesibles desde cualquier sesión e IDE.
+System for retaining important information across Claude Code sessions. Memories are saved in `~/Documents/brain-agm/[project]/` and are accessible from any session and IDE.
 
-## Cuándo Activarse
+## When to Activate
 
-### Guardar Memoria (Automático)
+### Save Memory (Automatic)
 
-**Siempre guardar cuando**:
-- Se completa o cierra un plan
-- Se toma una decisión técnica no obvia
-- Se resuelve un problema complejo
-- Usuario dice explícitamente: "guarda esto en memoria", "recuerda esto", "anota esto"
+**Always save when**:
+- A plan is completed or closed
+- A non-obvious technical decision is made
+- A complex problem is solved
+- User explicitly says: "save this to memory", "remember this", "note this"
 
-**Qué guardar**:
-- **Planes**: Guardar con contexto completo - qué se implementó, archivos modificados, decisiones tomadas
-- **Decisiones**: Guardar con el por qué - contexto, alternativas consideradas, razón de la elección, trade-offs
-- **Problemas**: Guardar con la solución - síntoma, causa raíz, solución aplicada, prevención futura
-- **User requests**: Cualquier cosa que el usuario pida explícitamente recordar
+**What to save**:
+- **Plans**: Save with complete context - what was implemented, modified files, decisions made
+- **Decisions**: Save with the why - context, alternatives considered, reason for choice, trade-offs
+- **Problems**: Save with solution - symptom, root cause, applied solution, future prevention
+- **User requests**: Anything user explicitly asks to remember
 
-### Buscar Memoria (Automático)
+### Search Memory (Automatic)
 
-**Buscar cuando**:
-- Usuario pregunta sobre trabajo anterior: "qué hicimos con X", "por qué decidimos Y", "cómo resolvimos Z"
-- Pregunta sugiere contexto de sesión anterior del mismo proyecto
-- Usuario dice: "busca en memoria", "qué recuerdas sobre X"
+**Search when**:
+- User asks about previous work: "what did we do with X", "why did we decide Y", "how did we solve Z"
+- Question suggests context from previous session of same project
+- User says: "search memory", "what do you remember about X"
 
-**Alcance de búsqueda**:
-- **Default**: SOLO proyecto actual (NO usar `--all-projects`)
-- **Cross-project**: Solo cuando usuario dice explícitamente "busca en otros proyectos" o menciona un proyecto específico (usar `--all-projects`)
+**Search scope**:
+- **Default**: ONLY current project (do NOT use `--all-projects`)
+- **Cross-project**: Only when user explicitly says "search in other projects" or mentions a specific project (use `--all-projects`)
 
-## Formato de Memoria
+## Memory Format
 
-Toda memoria debe tener esta estructura:
+Every memory must have this structure:
 
 ```markdown
-## Breve descripción
-[1-2 líneas de resumen ejecutivo]
+## Brief description
+[1-2 lines executive summary - what was done/decided/solved]
 
-## El qué
-[Qué se hizo, decidió o resolvió - concreto y específico]
-- Archivos modificados con líneas si es relevante
-- Comandos ejecutados si aplica
-- Código o configuración clave
+## What
+[Specific concrete description of what was done, decided or solved]
+- Modified files with lines if relevant
+- Executed commands if applicable
+- Changed configuration if applicable
+- Key code if applicable
 
-## El por qué
-**Contexto**: [Situación que llevó a esto]
+## Why
 
-**Decisiones clave**:
-1. [Decisión 1 con su razón]
-2. [Decisión 2 con su razón]
+**Context**: [Situation that led to this - the problem or need]
+
+**Key decisions**:
+1. [Decision 1 with its reason]
+2. [Decision 2 with its reason]
+3. [Decision 3 with its reason]
 
 **Trade-offs**:
-- [Pro y contra de la decisión]
-- [Alternativas descartadas y por qué]
+- [Pro and con of the decision]
+- [Discarded alternatives and why]
 
-## Referencias (opcional)
+## References (optional)
 - PR: #123
-- Documentación: docs/file.md
-- Memorias relacionadas: [título de otra memoria]
+- Documentation: docs/file.md
+- Related memories: [title of other memory]
 ```
 
-## Comandos
+## Commands
 
-### Guardar Memoria
+### Save Memory
 
 ```bash
 # Windows (PowerShell)
 python ~/.claude/skills/brain-agm/scripts/save_memory.py `
-  --project [nombre] `
+  --project [name] `
   --type [plan|decision|problem|user-request] `
-  --title "titulo-descriptivo" `
-  --content [ruta-archivo-temporal]
+  --title "descriptive-title" `
+  --content [temp-file-path]
 
 # Mac/Linux (Bash)
 python ~/.claude/skills/brain-agm/scripts/save_memory.py \
-  --project [nombre] \
+  --project [name] \
   --type [plan|decision|problem|user-request] \
-  --title "titulo-descriptivo" \
-  --content [ruta-archivo-temporal]
+  --title "descriptive-title" \
+  --content [temp-file-path]
 ```
 
-**Importante**: El archivo temporal debe contener SOLO el contenido (sin frontmatter). El script agrega el frontmatter automáticamente.
+**Important**: The temp file must contain ONLY the content (without frontmatter). The script adds frontmatter automatically.
 
-### Buscar Memoria
+### Search Memory
 
 ```bash
-# Buscar en proyecto actual (DEFAULT)
+# Search in current project (DEFAULT)
 python ~/.claude/skills/brain-agm/scripts/search_memory.py \
-  --project [nombre] \
-  --query "texto a buscar"
+  --project [name] \
+  --query "text to search"
 
-# Buscar en todos los proyectos (SOLO cuando usuario lo pida)
+# Search in all projects (ONLY when user requests it)
 python ~/.claude/skills/brain-agm/scripts/search_memory.py \
   --all-projects \
-  --query "texto a buscar"
+  --query "text to search"
 ```
 
-## Workflow: Guardar
+## Workflow: Save
 
-1. **Detectar momento importante** (plan cerrado, decisión tomada, problema resuelto, user request)
+1. **Detect important moment** (plan closed, decision made, problem solved, user request)
 
-2. **Crear archivo temporal** con el contenido:
+2. **Create temp file** with content:
    ```bash
    # Windows
    $content = @"
-   ## Breve descripción
+   ## Brief description
    [...]
    
-   ## El qué
+   ## What
    [...]
    
-   ## El por qué
+   ## Why
    [...]
    "@
    
@@ -125,85 +128,85 @@ python ~/.claude/skills/brain-agm/scripts/search_memory.py \
    $content | Out-File -FilePath $tempFile -Encoding utf8
    ```
 
-3. **Ejecutar script de guardado**:
+3. **Execute save script**:
    ```bash
    python ~/.claude/skills/brain-agm/scripts/save_memory.py \
-     --type [tipo apropiado] \
-     --title "titulo-descriptivo" \
+     --type [appropriate-type] \
+     --title "descriptive-title" \
      --content $tempFile \
-     --tags "tag1,tag2"  # Opcional
+     --tags "tag1,tag2"  # Optional
    ```
 
-4. **Confirmar al usuario**:
+4. **Confirm to user**:
    ```
-   ✓ Guardé esto en memoria: [título]
-   Ubicación: ~/Documents/brain-agm/[proyecto]/[archivo].md
-   Tipo: [tipo]
+   ✓ Saved to memory: [title]
+   Location: ~/Documents/brain-agm/[project]/[file].md
+   Type: [type]
    ```
 
-## Workflow: Buscar
+## Workflow: Search
 
-1. **Detectar pregunta sobre trabajo anterior**
-   - Palabras clave: "qué hicimos", "por qué decidimos", "cómo resolvimos", "recuerdas"
-   - Contexto: Usuario pregunta por algo que no está en archivos actuales
+1. **Detect question about previous work**
+   - Keywords: "what did we do", "why did we decide", "how did we solve", "remember"
+   - Context: User asks about something not in current files
 
-2. **Determinar alcance**:
-   - **Proyecto actual**: No menciona otros proyectos → NO usar `--all-projects`
-   - **Cross-project**: Dice "en otros proyectos" o menciona proyecto específico → usar `--all-projects`
+2. **Determine scope**:
+   - **Current project**: Doesn't mention other projects → do NOT use `--all-projects`
+   - **Cross-project**: Says "in other projects" or mentions specific project → use `--all-projects`
 
-3. **Ejecutar búsqueda**:
+3. **Execute search**:
    ```bash
    python ~/.claude/skills/brain-agm/scripts/search_memory.py \
      --project brain-agm \
      --query "oauth"
    ```
 
-4. **Procesar resultados**:
-   - Leer el archivo completo de las memorias más relevantes
-   - Cargar contexto en la conversación
+4. **Process results**:
+   - Read the complete file of most relevant memories
+   - Load context into conversation
 
-5. **Responder al usuario**:
+5. **Respond to user**:
    ```
-   Encontré [N] memoria(s) relacionada(s) en [proyecto]:
+   Found [N] related memory(ies) in [project]:
    
-   1. [Título] (fecha: [fecha], tipo: [tipo])
-      Archivo: [ruta]
+   1. [Title] (date: [date], type: [type])
+      File: [path]
       
-      [Resumen de lo encontrado]
+      [Summary of what was found]
    
-   [Usar el contenido para responder la pregunta original]
+   [Use content to answer original question]
    ```
 
-## Ejemplos
+## Examples
 
-### Ejemplo 1: Guardar Plan Completado
+### Example 1: Save Completed Plan
 
-**Situación**: Acabas de completar un plan de implementación de OAuth.
+**Situation**: Just completed OAuth implementation plan.
 
-**Acción**:
+**Action**:
 ```powershell
 $content = @"
-## Breve descripción
-Implementación de autenticación OAuth 2.0 con Google y Microsoft
+## Brief description
+OAuth 2.0 authentication implementation with Google and Microsoft
 
-## El qué
-Se implementó flujo OAuth 2.0:
-- Archivos: src/auth/oauth.py:45-120, src/config/providers.py:12-30
+## What
+Implemented OAuth 2.0 flow:
+- Files: src/auth/oauth.py:45-120, src/config/providers.py:12-30
 - Endpoints: /auth/login, /auth/callback, /auth/logout
 - Providers: Google OAuth, Microsoft Azure AD
-- Storage: Redis con TTL de 7 días
+- Storage: Redis with 7-day TTL
 
-## El por qué
-**Contexto**: Cliente requiere SSO corporativo para cumplir política de seguridad
+## Why
+**Context**: Client requires corporate SSO for security policy
 
-**Decisiones clave**:
-1. authlib sobre python-oauth2 - mejor soporte PKCE
-2. Redis para tokens - TTL automático, bajo volumen (<10k users)
-3. No refresh tokens esta fase - cliente prefiere re-auth cada 7 días
+**Key decisions**:
+1. authlib over python-oauth2 - better PKCE support
+2. Redis for tokens - automatic TTL, low volume (<10k users)
+3. No refresh tokens this phase - client prefers re-auth every 7 days
 
 **Trade-offs**:
-- Más complejo que auth local pero requerido por política
-- Dependencia servicios externos mitigada con retry logic
+- More complex than local auth but required by policy
+- External service dependency mitigated with retry logic
 "@
 
 $tempFile = "$env:TEMP\memory-oauth.md"
@@ -211,117 +214,117 @@ $content | Out-File -FilePath $tempFile -Encoding utf8
 
 python ~/.claude/skills/brain-agm/scripts/save_memory.py `
   --type plan `
-  --title "Implementación OAuth 2.0" `
+  --title "OAuth 2.0 Implementation" `
   --content $tempFile `
   --tags "auth,oauth,security"
 ```
 
-**Respuesta al usuario**:
+**Response to user**:
 ```
-✓ Guardé el plan completado en memoria: implementación-oauth-2-0
-Ubicación: ~/Documents/brain-agm/api-backend/implementación-oauth-2-0_2026-11-05_14-30-00.md
-Tipo: plan
+✓ Saved completed plan to memory: oauth-2-0-implementation
+Location: ~/Documents/brain-agm/api-backend/oauth-2-0-implementation_2026-11-05_14-30-00.md
+Type: plan
 ```
 
-### Ejemplo 2: Buscar Decisión Anterior
+### Example 2: Search Previous Decision
 
-**Situación**: Usuario pregunta "por qué usamos Redis para los tokens?"
+**Situation**: User asks "why do we use Redis for tokens?"
 
-**Detección**: Pregunta sobre decisión técnica pasada
+**Detection**: Question about past technical decision
 
-**Acción**:
+**Action**:
 ```bash
 python ~/.claude/skills/brain-agm/scripts/search_memory.py \
   --project api-backend \
   --query "redis tokens"
 ```
 
-**Respuesta**:
+**Response**:
 ```json
 {
   "success": true,
   "count": 1,
   "results": [{
-    "title": "implementación-oauth-2-0",
+    "title": "oauth-2-0-implementation",
     "date": "2026-11-05",
     "type": "plan",
-    "snippet": "Redis para tokens - TTL automático, bajo volumen"
+    "snippet": "Redis for tokens - automatic TTL, low volume"
   }]
 }
 ```
 
-**Leer memoria completa** y responder:
+**Read complete memory** and respond:
 ```
-Encontré la decisión en memoria:
+Found the decision in memory:
 
-📝 Implementación OAuth 2.0 (2026-11-05)
+📝 OAuth 2.0 Implementation (2026-11-05)
 
-Decidimos usar Redis para tokens por:
-1. TTL automático - los tokens expiran en 7 días sin lógica manual
-2. Volumen bajo - menos de 10k usuarios, Redis maneja esto fácilmente
-3. Simple y confiable - menos código que escribir y mantener
+We decided to use Redis for tokens because:
+1. Automatic TTL - tokens expire in 7 days without manual logic
+2. Low volume - less than 10k users, Redis handles this easily
+3. Simple and reliable - less code to write and maintain
 
-La alternativa era usar la base de datos principal, pero preferimos Redis porque el TTL automático elimina complejidad.
+The alternative was using the main database, but we preferred Redis because automatic TTL eliminates complexity.
 ```
 
-### Ejemplo 3: Búsqueda Cross-Project
+### Example 3: Cross-Project Search
 
-**Situación**: Usuario pregunta "busca en otros proyectos cómo manejamos rate limiting"
+**Situation**: User asks "search in other projects how we handled rate limiting"
 
-**Detección**: Usuario dice explícitamente "en otros proyectos"
+**Detection**: User explicitly says "in other projects"
 
-**Acción**:
+**Action**:
 ```bash
 python ~/.claude/skills/brain-agm/scripts/search_memory.py \
   --all-projects \
   --query "rate limiting"
 ```
 
-**Respuesta**:
+**Response**:
 ```
-Encontré 2 memorias en otros proyectos sobre rate limiting:
+Found 2 memories in other projects about rate limiting:
 
-1. api-gateway: "Implementación Rate Limiting con Redis" (2026-10-15)
-   - Usaron Redis con sliding window
-   - 100 req/min por usuario
+1. api-gateway: "Rate Limiting Implementation with Redis" (2026-10-15)
+   - Used Redis with sliding window
+   - 100 req/min per user
 
-2. webhooks-service: "Rate Limiting para Webhooks" (2026-09-20)
+2. webhooks-service: "Rate Limiting for Webhooks" (2026-09-20)
    - Token bucket algorithm
-   - Diferentes límites por tier de cliente
+   - Different limits per client tier
 
-¿Quieres que lea alguna en detalle?
+Want me to read any in detail?
 ```
 
-## Notas Importantes
+## Important Notes
 
-1. **Siempre mostrar al usuario qué se guardó/encontró** - ser transparente sobre el uso de memoria
+1. **Always show user what was saved/found** - be transparent about memory usage
 
-2. **Hacer referencia explícita** - decir "según la memoria de [fecha]" para que el usuario sepa de dónde viene la información
+2. **Make explicit references** - say "according to memory from [date]" so user knows where information comes from
 
-3. **El proyecto se detecta automáticamente** del nombre de la carpeta actual, pero puede especificarse con `--project`
+3. **Project is auto-detected** from current folder name, but can be specified with `--project`
 
-4. **Búsquedas son SOLO proyecto actual por defecto** - usar `--all-projects` requiere que el usuario lo pida explícitamente
+4. **Searches are ONLY current project by default** - using `--all-projects` requires user to explicitly request it
 
-5. **No guardar información sensible** - sin credenciales, API keys, PII
+5. **Don't save sensitive information** - no credentials, API keys, PII
 
-6. **Validar antes de guardar** - el script valida formato, pero revisar que el contenido sea útil
+6. **Validate before saving** - script validates format, but review that content is useful
 
-7. **Tags ayudan a organizar** - usar tags relevantes al guardar (opcional pero recomendado)
+7. **Tags help organize** - use relevant tags when saving (optional but recommended)
 
 ## Troubleshooting
 
-### Script falla con "module not found"
-- Verificar que Python esté en PATH
-- Verificar que los scripts estén en `~/.claude/skills/brain-agm/scripts/`
+### Script fails with "module not found"
+- Verify Python is in PATH
+- Verify scripts are in `~/.claude/skills/brain-agm/scripts/`
 
-### No encuentra memorias
-- Verificar que el proyecto sea correcto: `--project [nombre]`
-- Verificar que exista `~/Documents/brain-agm/[proyecto]/`
-- Probar con `--all-projects` si buscas en otro proyecto
+### Doesn't find memories
+- Verify correct project: `--project [name]`
+- Verify exists: `~/Documents/brain-agm/[project]/`
+- Try with `--all-projects` if searching in another project
 
-### Memoria no se guarda
-- Verificar que el archivo temporal existe
-- Verificar permisos de escritura en `~/Documents/brain-agm/`
-- Revisar formato del contenido (debe tener secciones "## Breve descripción", "## El qué", "## El por qué")
+### Memory doesn't save
+- Verify temp file exists
+- Verify write permissions in `~/Documents/brain-agm/`
+- Review content format (must have "## Brief description", "## What", "## Why" sections)
 
 ChaChau !!!
