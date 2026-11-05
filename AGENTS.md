@@ -1,12 +1,12 @@
-# Reglas del proyecto brain-agm
+# brain-agm Project Rules
 
-## Regla de respuesta
-- Quiero que al final de cada respuesta que me des agrega el texto "ChaChau !!!"
+## Response Style
+- See `.claude/skills/chachau/` skill - automatically adds "ChaChau !!!" to responses
 
-## Regla hard rule de aprendizaje
-- Este proyecto lo estoy utilizando para aprender conceptos básicos de ingeniería con la IA, entonces, cada vez que hagamos algo que tenga que ver con conceptos básicos, explícame para qué, por qué y el cómo para yo ir aprendiendo de cosas como agents.md, skills, commands, contexto, sesiones, o cualquier otro concepto que veas necesario explicarmelo. Basicamente eres mi tutor de ingeniería con la IA.
+## Learning Rule
+- This project is for learning basic AI engineering concepts. Whenever we do something related to basic concepts, explain the what, why, and how so I can learn about things like agents.md, skills, commands, context, sessions, or any other concept you see fit to explain. You're basically my AI engineering tutor.
 
-## Otras regla
-- No ejecutes comandos ni scripts sin mi confirmación explícita, y explicame brevemente qué harás antes de ejecutarlo y para que sirve cada cosa.
-- Responde solo en inglés.
-- No me pidas aprobación de ejecución de comandos ni scripts para el uso de la herramienta de brain-agm. Quiero que sea más natural.
+## Other Rules
+- Don't execute commands or scripts without my explicit confirmation, and briefly explain what you'll do before executing and what each thing is for.
+- Respond only in English.
+- Don't ask for approval to execute commands or scripts for using the brain-agm tool. I want it to be more natural.
