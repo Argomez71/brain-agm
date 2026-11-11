@@ -1,65 +1,64 @@
-# Memoria a demanda entre sesiones de Claude Code
+# On-demand memory across Claude Code sessions
 
-## Problema
+## Problem
 
-Al abrir una sesión nueva, el agente no tiene acceso a lo que se hizo en sesiones anteriores. Dentro de una misma sesión todo funciona bien.
+When a new session opens, the agent has no access to what was done in previous sessions. Within the same session everything works well.
 
-## Opciones descartadas
+## Discarded options
 
-Todas las opciones que cargan contexto al inicio se descartaron porque consumen contexto desde el primer mensaje, aunque no se necesite:
+All options that load context at startup were discarded because they consume context from the first message, even when it is not needed:
 
-- CLAUDE.md con historial o decisiones acumuladas.
-- Memoria automática en archivos, que se carga al inicio.
-- Notas de sesión importadas desde CLAUDE.md.
-- Retomar sesiones con `claude --continue` o `claude --resume`, porque solo recupera una conversación completa y no permite consultar varias sesiones antiguas desde una nueva.
+- CLAUDE.md with accumulated history or decisions.
+- Automatic memory in files, which is loaded at startup.
+- Session notes imported from CLAUDE.md.
+- Resuming sessions with `claude --continue` or `claude --resume`, because it only restores one full conversation and does not allow querying several past sessions from a new one.
 
-## Enfoque elegido
+## Chosen approach
 
-Recuperación bajo demanda. Un script de búsqueda local indexa las transcripciones de Claude Code, que se guardan como archivos JSONL en `%USERPROFILE%\.claude\projects\`. Cuando el usuario pregunta por trabajo anterior, el agente ejecuta el script con la herramienta Bash, obtiene los fragmentos relevantes con fecha y sesión, y los usa para responder.
+On-demand retrieval. A local search script indexes Claude Code transcripts, which are stored as JSONL files in `%USERPROFILE%\.claude\projects\`. When the user asks about past work, the agent runs the script with the Bash tool, gets the relevant excerpts with date and session, and uses them to answer.
 
-Costo al inicio: cero, porque el script no se carga en el contexto hasta que se usa. Solo se agrega una línea en CLAUDE.md que indique cuándo usarlo.
+Startup cost: zero, because the script is not loaded into context until it is used. It only adds one line to CLAUDE.md that says when to use it.
 
-## Pendientes antes de construirlo
+## Pending items before building it
 
-1. Confirmar el formato exacto de los JSONL en este equipo, porque la ruta y la estructura pueden cambiar según la versión de Claude Code.
-2. Validar con la política de datos de Improving si indexar transcripciones es aceptable. Si las sesiones contienen datos de clientes, credenciales, PII o material criptográfico, deben revisarse o anonimizarse antes de procesarlas con IA. El índice se queda en la máquina, pero la política aplica al contenido.
-3. Definir el lenguaje del script (PowerShell o Python) según lo que esté instalado.
+1. Confirm the exact JSONL format on this machine, because the path and structure may change depending on the Claude Code version.
+2. Check with Improving's data policy whether indexing transcripts is acceptable. If sessions contain client data, credentials, PII or cryptographic material, they must be reviewed or anonymized before being processed with AI. The index stays on the machine, but the policy applies to the content.
+3. Choose the script language (PowerShell or Python) based on what is installed.
 
-## Estado del proyecto
+## Project status
 
-- La carpeta del proyecto cambió de `engram-agm` a `brain-agm`.
-- La sesión actual trabaja en `C:\ai_projects\brain-agm`, y su transcripción está en `%USERPROFILE%\.claude\projects\C--ai-projects-brain-agm\`.
-- Pendiente: eliminar la carpeta vacía `C:\ai_projects\engram-agm` y la copia anterior de la sesión en `%USERPROFILE%\.claude\projects\C--ai-projects-engram-agm\`. La herramienta bloqueó el borrado, así que debe hacerse manualmente.
+- The project folder was renamed from `engram-agm` to `brain-agm`.
+- The current session works in `C:\ai_projects\brain-agm`, and its transcript is in `%USERPROFILE%\.claude\projects\C--ai-projects-brain-agm\`.
+- Pending: delete the empty folder `C:\ai_projects\engram-agm` and the previous session copy in `%USERPROFILE%\.claude\projects\C--ai-projects-engram-agm\`. The tool blocked the deletion, so it must be done manually.
 
 
-## Plan para crear la herramienta de memoria global
- ok, esto es lo que quiero:
+## Plan for building the global memory tool
 
-  La idea es compartir memoria de una sesión a otra entre diferentes IDEs o CLIs, para eos quiero que dentro de una sesión que el agente sea capaz de: que si se hizo un plan se ejecutó o se cerró el plan se guarde en memoria. Quiero también que cuando se tomen
-  decisiones importantes se guarden en memoria, con el por qué y el para qué. Quiero que cuando el agente al trabajar y encuentre algun problema y tome una decisión importante, también que la guarde en memoria, y si yo como usuario le digo explicitamente que lo guarde
-  en memoria, que también lo haga y que cada 15min el agente se pregunte así mismo si hay algo nuevo que se deba guardar. Además quiero que se puedan actualizar las memorias guardadas, por si un plan o decisión cambió que se actualice.
+The idea is to share memory from one session to another across different IDEs or CLIs. Within a session, the agent should be able to:
 
-  La estructura de como quiero que se guarde que sea la siguiente:
-  - Que en todas las computadoras con Windows o MAC se cree un folder llamado brain-agm en documentos, donde se almacenarán todas las memorias (el location puede ser cualquiera, pero que sea una ruta que siempre exista y que se pueda crear siempre el folder brain-agm,
-  recomiendame el mejor lugar para cada OS).
-  - Al abrir una sesión de chat con cualquier agente brain-agm debe crear un folder dentro de brain-agm con el nombre del proyecto en el que estamos trabajando y el nombre de debe tomar del nombre de la carpeta en donde estamos parados.
-  - Dentro de un proyecto se deben guardar todas sus memorias con un título, la fecha, y en el siguiente formato:
-  a) Breve descripción, b) El qué y el por qué
+- If a plan was executed or closed, save it to memory.
+- When important decisions are made, save them to memory, with the why and the purpose.
+- When the agent finds a problem and makes an important decision while working, save that too.
+- If the user explicitly asks to save something to memory, do it as well.
+- Every 15 minutes, the agent should ask itself whether there is anything new that should be saved.
+- Saved memories must be updatable, in case a plan or decision changed.
 
-  En una sesión de chat el agente debe ser capaz de detectar que el usuario hace una pregunta y si la pregunta da a entender que es algo que se trabajó anteriormente o hubo una decisión importante que se tomó y que pueda existir en la memoria de brain-agm el agente
-  debe ir a buscar algo en memoria relacionado y si está relacionado que lo cargue en el contexto de la actual conversación y que le muestre al usuario lo que encontró. Importante hacer la referencia de la memoria que se recuperó. El usuario puede pedir explicitamente
-  que se busque algo en memoria del proyecto o incluso de otro proyecto.
+Storage structure:
 
-  No soy una persona muy técnica, por lo que quiero mantener lo más simple posible esta herramienta pero quiero que funcione global en mi máquina para cualquier proyecto o sesión que yo abra. Quiero que funcione para Claude y para Devin/Windsur. En este momento me
-  puedo imaginar que podemos crear para claude un archivo claude.md que referencie a agents.md donde se defina esta herramienta como funciona y para qué y para que el agente al iniciar la sesión conozca que existe la herramienta y para que sepa como usarla y cuando.
-  Además quizás habrá que crear un skill o mcp para hacer la lectura o el guardado, y los mismos archivos habrá que crearlos para devin/windsurf.
+- On every Windows or Mac computer, create a folder named brain-agm in Documents, where all memories will be stored. The location can vary, but it must be a path that always exists and where the brain-agm folder can always be created. Recommend the best location for each OS.
+- When a chat session with any brain-agm agent opens, it must create a folder inside brain-agm named after the project we are working on, taken from the name of the folder we are in.
+- Inside a project, all memories must be saved with a title, the date, and in this format: a) Brief description, b) What and why.
 
-  Todos los archivos de este proyecto guardalos en esta carpeta: C:\AI_Projects\brain-agm porque quiero poder compartirlo con otros compañeros y que lo instalen por si les sirve. Por lo que quiero tener un script que ayude en la instalación y configuración de la herramienta. Y otro scrípt para remover la herramienta y recuerda mantener esto lo más simple posible.
+Retrieval:
 
-----------
+- In a chat session, the agent must detect when the user asks a question that implies prior work or an important past decision. If brain-agm may have related memory, the agent must search it, load related memories into the current conversation context, and show the user what it found, always referencing the memory it recovered.
+- The user can explicitly ask to search memory for the current project or even for another project.
 
-  El Agents.md si puede ir global en cada carpeta de configuración del IDE, al mismo nivel que claude.md por ejemplo. Solo recuerda que claude tiene que referenciar a agents.md.
+Constraints:
 
-  No quiero que utilices mecanismos específicos de un ide para guardar memorias, quiero que sea un mecanismo simple que funcione en cualquier ide y que las memorias se guarden en la carpeta que te indiqué, pero si puedes tomar ideas de funcionalidades que ya existan.
-
-  Sí hay skills globales para claude, investigalo.
+- The user is not very technical, so the tool must be as simple as possible, while working globally on the machine for any project or session.
+- It must work for Claude and for Devin/Windsurf. For Claude, a CLAUDE.md file can reference AGENTS.md, where this tool is defined: how it works, what it is for, and when to use it, so the agent knows it exists at session start. A skill or MCP may also be needed to read or save memories, and the same files will need to exist for Devin/Windsurf.
+- All project files live in `C:\AI_Projects\brain-agm`, because the project will be shared with colleagues who can install it if useful. It needs an installation and configuration script, and a second script to remove the tool. Keep it as simple as possible.
+- AGENTS.md can be global in each IDE configuration folder, at the same level as CLAUDE.md. Claude must reference AGENTS.md.
+- Do not use IDE-specific mechanisms to save memories. It must be a simple mechanism that works in any IDE, and memories must be stored in the folder specified above. Ideas from existing features can be borrowed.
+- Check whether Claude global skills exist and investigate them.

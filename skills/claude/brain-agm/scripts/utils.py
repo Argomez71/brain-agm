@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Utilidades compartidas para brain-agm
-Funciones para detectar proyecto, validar memorias y buscar texto.
+Shared utilities for brain-agm.
+Functions to detect the project, validate memories and search text.
 """
 
 import os
@@ -13,15 +13,15 @@ from datetime import datetime
 
 def get_project_name():
     """
-    Obtener nombre del proyecto actual desde el directorio de trabajo.
+    Get the current project name from the working directory.
 
     Returns:
-        str: Nombre del proyecto (nombre del directorio actual)
+        str: Project name (current directory name)
     """
     cwd = os.getcwd()
     project_name = os.path.basename(cwd)
 
-    # Limpiar nombre para usar como nombre de carpeta
+    # Clean the name so it can be used as a folder name
     project_name = re.sub(r'[^\w\s-]', '', project_name)
     project_name = re.sub(r'[-\s]+', '-', project_name)
 
@@ -30,18 +30,18 @@ def get_project_name():
 
 def get_memory_dir(project=None):
     """
-    Obtener ruta del directorio de memorias.
+    Get the memory directory path.
 
     Args:
-        project (str, optional): Nombre del proyecto. Si no se especifica, usa el proyecto actual.
+        project (str, optional): Project name. If not given, uses the current project.
 
     Returns:
-        Path: Ruta al directorio de memorias del proyecto
+        Path: Path to the project's memory directory
     """
     if project is None:
         project = get_project_name()
 
-    # Detectar OS y usar la ruta apropiada
+    # Detect OS and use the appropriate path
     if sys.platform == 'win32':
         home = Path(os.environ.get('USERPROFILE', os.path.expanduser('~')))
     else:
@@ -55,13 +55,13 @@ def get_memory_dir(project=None):
 
 def ensure_memory_dir(project=None):
     """
-    Asegurar que el directorio de memorias existe, crearlo si no.
+    Make sure the memory directory exists, creating it if needed.
 
     Args:
-        project (str, optional): Nombre del proyecto
+        project (str, optional): Project name
 
     Returns:
-        Path: Ruta al directorio de memorias
+        Path: Path to the memory directory
     """
     memory_dir = get_memory_dir(project)
     memory_dir.mkdir(parents=True, exist_ok=True)
@@ -70,21 +70,21 @@ def ensure_memory_dir(project=None):
 
 def validate_frontmatter(content):
     """
-    Validar que el contenido tiene frontmatter válido.
+    Validate that the content has valid frontmatter.
 
     Args:
-        content (str): Contenido del archivo de memoria
+        content (str): Content of the memory file
 
     Returns:
-        tuple: (bool, str) - (es_válido, mensaje_error)
+        tuple: (bool, str) - (is_valid, error_message)
     """
     lines = content.strip().split('\n')
 
-    # Debe empezar con ---
+    # Must start with ---
     if not lines or lines[0].strip() != '---':
-        return False, "Frontmatter debe empezar con '---'"
+        return False, "Frontmatter must start with '---'"
 
-    # Buscar el cierre del frontmatter
+    # Find the closing frontmatter delimiter
     end_idx = -1
     for i in range(1, len(lines)):
         if lines[i].strip() == '---':
@@ -92,29 +92,29 @@ def validate_frontmatter(content):
             break
 
     if end_idx == -1:
-        return False, "Frontmatter no está cerrado con '---'"
+        return False, "Frontmatter is not closed with '---'"
 
-    # Validar campos requeridos en frontmatter
+    # Validate required frontmatter fields
     frontmatter = '\n'.join(lines[1:end_idx])
     required_fields = ['title:', 'date:', 'project:', 'type:']
 
     for field in required_fields:
         if field not in frontmatter:
-            return False, f"Campo requerido '{field.rstrip(':')}' no encontrado en frontmatter"
+            return False, f"Required field '{field.rstrip(':')}' not found in frontmatter"
 
     return True, ""
 
 
 def parse_memory(file_path):
     """
-    Parsear un archivo de memoria.
+    Parse a memory file.
 
     Args:
-        file_path (Path or str): Ruta al archivo de memoria
+        file_path (Path or str): Path to the memory file
 
     Returns:
-        dict: Diccionario con 'frontmatter' (dict) y 'content' (str)
-              Retorna None si el archivo no existe o es inválido
+        dict: Dictionary with 'frontmatter' (dict) and 'content' (str).
+              Returns None if the file does not exist or is invalid.
     """
     file_path = Path(file_path)
 
@@ -125,12 +125,12 @@ def parse_memory(file_path):
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
     except Exception as e:
-        print(f"Error leyendo archivo: {e}", file=sys.stderr)
+        print(f"Error reading file: {e}", file=sys.stderr)
         return None
 
     lines = content.split('\n')
 
-    # Buscar frontmatter
+    # Look for frontmatter
     if not lines or lines[0].strip() != '---':
         return None
 
@@ -143,14 +143,14 @@ def parse_memory(file_path):
     if end_idx == -1:
         return None
 
-    # Parsear frontmatter (simple key: value)
+    # Parse frontmatter (simple key: value)
     frontmatter = {}
     for line in lines[1:end_idx]:
         if ':' in line:
             key, value = line.split(':', 1)
             frontmatter[key.strip()] = value.strip()
 
-    # Contenido después del frontmatter
+    # Content after the frontmatter
     body = '\n'.join(lines[end_idx + 1:])
 
     return {
@@ -161,14 +161,14 @@ def parse_memory(file_path):
 
 def search_text(query, text):
     """
-    Buscar texto simple (case-insensitive).
+    Simple case-insensitive text search.
 
     Args:
-        query (str): Texto a buscar
-        text (str): Texto donde buscar
+        query (str): Text to search for
+        text (str): Text to search in
 
     Returns:
-        tuple: (bool, list) - (encontrado, lista de líneas coincidentes)
+        tuple: (bool, list) - (found, list of matching lines)
     """
     query_lower = query.lower()
     text_lower = text.lower()
@@ -176,7 +176,7 @@ def search_text(query, text):
     if query_lower not in text_lower:
         return False, []
 
-    # Encontrar líneas que contienen el query
+    # Find the lines that contain the query
     lines = text.split('\n')
     matching_lines = []
 
@@ -189,24 +189,24 @@ def search_text(query, text):
 
 def create_slug(title):
     """
-    Crear slug desde un título.
+    Create a slug from a title.
 
     Args:
-        title (str): Título a convertir
+        title (str): Title to convert
 
     Returns:
-        str: Slug (kebab-case, sin caracteres especiales)
+        str: Slug (kebab-case, without special characters)
     """
-    # Convertir a minúsculas
+    # Convert to lowercase
     slug = title.lower()
 
-    # Remover caracteres especiales
+    # Remove special characters
     slug = re.sub(r'[^\w\s-]', '', slug)
 
-    # Reemplazar espacios y múltiples guiones con un guion
+    # Replace spaces and repeated hyphens with a single hyphen
     slug = re.sub(r'[-\s]+', '-', slug)
 
-    # Remover guiones al inicio y final
+    # Remove leading and trailing hyphens
     slug = slug.strip('-')
 
     return slug
@@ -214,7 +214,7 @@ def create_slug(title):
 
 def get_timestamp():
     """
-    Obtener timestamp actual en formato ISO 8601.
+    Get the current timestamp in ISO 8601 format.
 
     Returns:
         str: Timestamp (e.g., "2026-11-05T14:30:00")
@@ -224,17 +224,17 @@ def get_timestamp():
 
 def get_date():
     """
-    Obtener fecha actual en formato YYYY-MM-DD.
+    Get the current date in YYYY-MM-DD format.
 
     Returns:
-        str: Fecha (e.g., "2026-11-05")
+        str: Date (e.g., "2026-11-05")
     """
     return datetime.now().strftime('%Y-%m-%d')
 
 
 if __name__ == '__main__':
-    # Pruebas básicas
-    print(f"Proyecto actual: {get_project_name()}")
-    print(f"Directorio de memorias: {get_memory_dir()}")
-    print(f"Slug de 'Implementación OAuth 2.0': {create_slug('Implementación OAuth 2.0')}")
-    print(f"Fecha actual: {get_date()}")
+    # Basic checks
+    print(f"Current project: {get_project_name()}")
+    print(f"Memory directory: {get_memory_dir()}")
+    print(f"Slug for 'OAuth 2.0 Implementation': {create_slug('OAuth 2.0 Implementation')}")
+    print(f"Current date: {get_date()}")

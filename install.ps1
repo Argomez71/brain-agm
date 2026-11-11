@@ -1,17 +1,18 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Instalador de brain-agm para Windows/Mac/Linux
+    brain-agm installer for Windows/Mac/Linux
 
 .DESCRIPTION
-    Instala el sistema de memoria compartida brain-agm:
-    - Crea directorio de memorias en ~/Documents/brain-agm/
-    - Copia skills a Claude (~/.claude/skills/brain-agm/)
-    - Copia skills a Windsurf (~/.codeium/windsurf/skills/brain-agm/)
-    - Agrega configuración a AGENTS.md y CLAUDE.md (sin sobreescribir)
+    Installs the brain-agm shared memory system:
+    - Creates the memory directory in ~/Documents/brain-agm/
+    - Copies the skill to Claude (~/.claude/skills/brain-agm/)
+    - Copies the skill to Windsurf (~/.codeium/windsurf/skills/brain-agm/)
+    - Adds configuration to AGENTS.md and CLAUDE.md (without overwriting)
+    - Registers the automatic review hook in ~/.claude/settings.json
 
 .PARAMETER Verbose
-    Muestra información detallada durante la instalación
+    Shows detailed information during installation
 
 .EXAMPLE
     .\install.ps1
@@ -23,7 +24,7 @@ param(
     [switch]$VerboseMode
 )
 
-# Colores para output
+# Output colors
 function Write-Success { param($msg) Write-Host "✓ $msg" -ForegroundColor Green }
 function Write-Info { param($msg) Write-Host "→ $msg" -ForegroundColor Cyan }
 function Write-Warning { param($msg) Write-Host "⚠ $msg" -ForegroundColor Yellow }
@@ -31,32 +32,32 @@ function Write-ErrorMsg { param($msg) Write-Host "✗ $msg" -ForegroundColor Red
 
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "  brain-agm: Sistema de Memoria Compartida" -ForegroundColor Cyan
-Write-Host "  Instalador v1.0.0" -ForegroundColor Cyan
+Write-Host "  brain-agm: Shared Memory System" -ForegroundColor Cyan
+Write-Host "  Installer v1.0.0" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
-# 1. Verificar Python instalado
-Write-Info "Verificando Python..."
+# 1. Check that Python is installed
+Write-Info "Checking Python..."
 $pythonCmd = $null
 foreach ($cmd in @('python', 'python3')) {
     try {
         $version = & $cmd --version 2>&1
         if ($LASTEXITCODE -eq 0) {
             $pythonCmd = $cmd
-            Write-Success "Python encontrado: $version"
+            Write-Success "Python found: $version"
             break
         }
     } catch {}
 }
 
 if (-not $pythonCmd) {
-    Write-ErrorMsg "Python no encontrado. Instala Python 3.7+ desde https://www.python.org/downloads/"
+    Write-ErrorMsg "Python not found. Install Python 3.7+ from https://www.python.org/downloads/"
     exit 1
 }
 
-# 2. Detectar rutas según OS
-Write-Info "Detectando sistema operativo..."
+# 2. Detect paths based on the OS
+Write-Info "Detecting operating system..."
 if ($IsWindows -or $env:OS -match "Windows") {
     $homeDir = $env:USERPROFILE
     $os = "Windows"
@@ -68,64 +69,64 @@ if ($IsWindows -or $env:OS -match "Windows") {
         $os = "Linux"
     }
 }
-Write-Success "Sistema: $os"
+Write-Success "System: $os"
 Write-Success "Home: $homeDir"
 
-# Rutas importantes
-$memoryBase = Join-Path $homeDir "Documents\brain-agm"
-$claudeSkills = Join-Path $homeDir ".claude\skills\brain-agm"
-$claudeAgents = Join-Path $homeDir ".claude\AGENTS.md"
-$claudeMd = Join-Path $homeDir ".claude\CLAUDE.md"
-$windsurfSkills = Join-Path $homeDir ".codeium\windsurf\skills\brain-agm"
-$windsurfAgents = Join-Path $homeDir ".codeium\windsurf\AGENTS.md"
+# Important paths
+$memoryBase = Join-Path $homeDir "Documents" "brain-agm"
+$claudeSkills = Join-Path $homeDir ".claude" "skills" "brain-agm"
+$claudeAgents = Join-Path $homeDir ".claude" "AGENTS.md"
+$claudeMd = Join-Path $homeDir ".claude" "CLAUDE.md"
+$windsurfSkills = Join-Path $homeDir ".codeium" "windsurf" "skills" "brain-agm"
+$windsurfAgents = Join-Path $homeDir ".codeium" "windsurf" "AGENTS.md"
 
 $projectRoot = $PSScriptRoot
 
-# 3. Crear directorio de memorias
-Write-Info "Creando directorio de memorias..."
+# 3. Create the memory directory
+Write-Info "Creating memory directory..."
 if (Test-Path $memoryBase) {
-    Write-Success "Directorio ya existe: $memoryBase"
+    Write-Success "Directory already exists: $memoryBase"
 } else {
     New-Item -ItemType Directory -Force -Path $memoryBase | Out-Null
-    Write-Success "Creado: $memoryBase"
+    Write-Success "Created: $memoryBase"
 }
 
-# 4. Copiar skills a Claude
-Write-Info "Instalando skill para Claude Code..."
-$sourceSkill = Join-Path $projectRoot "skills\claude\brain-agm"
+# 4. Copy the skill to Claude
+Write-Info "Installing skill for Claude Code..."
+$sourceSkill = Join-Path $projectRoot "skills" "claude" "brain-agm"
 if (Test-Path $sourceSkill) {
-    # Crear directorio padre si no existe
+    # Create the parent directory if it does not exist
     $claudeSkillsParent = Split-Path $claudeSkills -Parent
     if (-not (Test-Path $claudeSkillsParent)) {
         New-Item -ItemType Directory -Force -Path $claudeSkillsParent | Out-Null
     }
 
-    # Copiar skill
+    # Copy skill
     Copy-Item -Path $sourceSkill -Destination $claudeSkills -Recurse -Force
-    Write-Success "Skill copiado a: $claudeSkills"
+    Write-Success "Skill copied to: $claudeSkills"
 
-    # Verificar que los scripts funcionan
-    $testScript = Join-Path $claudeSkills "scripts\save_memory.py"
+    # Verify that the scripts work
+    $testScript = Join-Path $claudeSkills "scripts" "save_memory.py"
     if (Test-Path $testScript) {
         try {
             & $pythonCmd $testScript --help | Out-Null
             if ($LASTEXITCODE -eq 0) {
-                Write-Success "Scripts Python verificados"
+                Write-Success "Python scripts verified"
             }
         } catch {
-            Write-Warning "No se pudo verificar scripts Python"
+            Write-Warning "Could not verify Python scripts"
         }
     }
 } else {
-    Write-ErrorMsg "No se encontró skill de Claude en: $sourceSkill"
+    Write-ErrorMsg "Claude skill not found at: $sourceSkill"
 }
 
-# 5. Copiar skills a Windsurf (si existe)
-Write-Info "Verificando Windsurf/Devin..."
-$windsurfBase = Join-Path $homeDir ".codeium\windsurf"
+# 5. Copy the skill to Windsurf (if installed)
+Write-Info "Checking Windsurf/Devin..."
+$windsurfBase = Join-Path $homeDir ".codeium" "windsurf"
 if (Test-Path $windsurfBase) {
-    Write-Info "Windsurf encontrado, instalando skill..."
-    $sourceWindsurf = Join-Path $projectRoot "skills\windsurf\brain-agm"
+    Write-Info "Windsurf found, installing skill..."
+    $sourceWindsurf = Join-Path $projectRoot "skills" "windsurf" "brain-agm"
 
     if (Test-Path $sourceWindsurf) {
         $windsurfSkillsParent = Split-Path $windsurfSkills -Parent
@@ -133,74 +134,74 @@ if (Test-Path $windsurfBase) {
             New-Item -ItemType Directory -Force -Path $windsurfSkillsParent | Out-Null
         }
         Copy-Item -Path $sourceWindsurf -Destination $windsurfSkills -Recurse -Force
-        Write-Success "Skill copiado a: $windsurfSkills"
+        Write-Success "Skill copied to: $windsurfSkills"
     } else {
-        Write-Warning "Skill de Windsurf no disponible todavía (TODO)"
+        Write-Warning "Windsurf skill not available yet (TODO)"
     }
 } else {
-    Write-Warning "Windsurf no encontrado, omitiendo..."
+    Write-Warning "Windsurf not found, skipping..."
 }
 
-# 6. Manejar AGENTS.md de Claude (NO sobreescribir)
-Write-Info "Configurando AGENTS.md global para Claude..."
-$agentsContent = Get-Content (Join-Path $projectRoot "config\claude\AGENTS.md") -Raw
+# 6. Handle the global Claude AGENTS.md (do NOT overwrite)
+Write-Info "Configuring global AGENTS.md for Claude..."
+$agentsContent = Get-Content (Join-Path $projectRoot "config" "claude" "AGENTS.md") -Raw
 
 if (Test-Path $claudeAgents) {
-    # Archivo existe, verificar si ya tiene brain-agm
+    # File exists, check whether it already has brain-agm
     $existing = Get-Content $claudeAgents -Raw
-    if ($existing -match "brain-agm: Sistema de memoria compartida") {
-        Write-Warning "AGENTS.md ya contiene brain-agm, omitiendo..."
+    if ($existing -match "brain-agm: (Sistema de memoria compartida|Shared Memory System)") {
+        Write-Warning "AGENTS.md already contains brain-agm, skipping..."
     } else {
-        # Agregar al final con backup
+        # Append to the end, with a backup
         $backup = "$claudeAgents.backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
         Copy-Item $claudeAgents $backup
-        Write-Success "Backup creado: $backup"
+        Write-Success "Backup created: $backup"
 
         Add-Content -Path $claudeAgents -Value "`n`n$agentsContent"
-        Write-Success "brain-agm agregado a AGENTS.md existente"
+        Write-Success "brain-agm added to existing AGENTS.md"
     }
 } else {
-    # Crear nuevo
+    # Create new
     $claudeDir = Split-Path $claudeAgents -Parent
     if (-not (Test-Path $claudeDir)) {
         New-Item -ItemType Directory -Force -Path $claudeDir | Out-Null
     }
     Set-Content -Path $claudeAgents -Value $agentsContent
-    Write-Success "AGENTS.md creado: $claudeAgents"
+    Write-Success "AGENTS.md created: $claudeAgents"
 }
 
-# 7. Manejar CLAUDE.md global (NO sobreescribir)
-Write-Info "Configurando CLAUDE.md global para Claude..."
-$claudeMdContent = Get-Content (Join-Path $projectRoot "config\claude\CLAUDE.md") -Raw
+# 7. Handle the global CLAUDE.md (do NOT overwrite)
+Write-Info "Configuring global CLAUDE.md for Claude..."
+$claudeMdContent = Get-Content (Join-Path $projectRoot "config" "claude" "CLAUDE.md") -Raw
 
 if (Test-Path $claudeMd) {
-    # Archivo existe, verificar si ya referencia AGENTS.md
+    # File exists, check whether it already references AGENTS.md
     $existing = Get-Content $claudeMd -Raw
 
     if ($existing -match "brain-agm") {
-        Write-Warning "CLAUDE.md ya contiene brain-agm, omitiendo..."
+        Write-Warning "CLAUDE.md already contains brain-agm, skipping..."
     } elseif ($existing -match "@.*AGENTS\.md") {
-        Write-Success "CLAUDE.md ya referencia AGENTS.md"
+        Write-Success "CLAUDE.md already references AGENTS.md"
     } else {
-        # Agregar referencia a AGENTS.md si no existe
+        # Add a reference to AGENTS.md
         $backup = "$claudeMd.backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
         Copy-Item $claudeMd $backup
-        Write-Success "Backup creado: $backup"
+        Write-Success "Backup created: $backup"
 
-        # Agregar al final
+        # Append to the end
         Add-Content -Path $claudeMd -Value "`n`n$claudeMdContent"
-        Write-Success "brain-agm agregado a CLAUDE.md existente"
+        Write-Success "brain-agm added to existing CLAUDE.md"
     }
 } else {
-    # Crear nuevo
+    # Create new
     Set-Content -Path $claudeMd -Value $claudeMdContent
-    Write-Success "CLAUDE.md creado: $claudeMd"
+    Write-Success "CLAUDE.md created: $claudeMd"
 }
 
-# 8. Manejar AGENTS.md de Windsurf (si aplica)
+# 8. Handle the Windsurf AGENTS.md (if applicable)
 if (Test-Path $windsurfBase) {
-    Write-Info "Configurando AGENTS.md para Windsurf..."
-    $windsurfAgentsSource = Join-Path $projectRoot "config\windsurf\AGENTS.md"
+    Write-Info "Configuring AGENTS.md for Windsurf..."
+    $windsurfAgentsSource = Join-Path $projectRoot "config" "windsurf" "AGENTS.md"
 
     if (Test-Path $windsurfAgentsSource) {
         $windsurfAgentsContent = Get-Content $windsurfAgentsSource -Raw
@@ -208,59 +209,86 @@ if (Test-Path $windsurfBase) {
         if (Test-Path $windsurfAgents) {
             $existing = Get-Content $windsurfAgents -Raw
             if ($existing -match "brain-agm") {
-                Write-Warning "Windsurf AGENTS.md ya contiene brain-agm"
+                Write-Warning "Windsurf AGENTS.md already contains brain-agm"
             } else {
                 $backup = "$windsurfAgents.backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
                 Copy-Item $windsurfAgents $backup
                 Add-Content -Path $windsurfAgents -Value "`n`n$windsurfAgentsContent"
-                Write-Success "brain-agm agregado a Windsurf AGENTS.md"
+                Write-Success "brain-agm added to Windsurf AGENTS.md"
             }
         } else {
             Set-Content -Path $windsurfAgents -Value $windsurfAgentsContent
-            Write-Success "Windsurf AGENTS.md creado"
+            Write-Success "Windsurf AGENTS.md created"
         }
     } else {
-        Write-Warning "Configuración de Windsurf no disponible todavía (TODO)"
+        Write-Warning "Windsurf configuration not available yet (TODO)"
     }
 }
 
-# 9. Copiar hook check_memory.py
-Write-Info "Instalando hook de revisión automática..."
-$hookScript = Join-Path $projectRoot "hooks\scripts\check_memory.py"
+# 9. Copy the check_memory.py hook and register it in Claude's settings.json
+Write-Info "Installing automatic review hook..."
+$hookScript = Join-Path $projectRoot "hooks" "scripts" "check_memory.py"
 if (Test-Path $hookScript) {
-    $claudeHooksDir = Join-Path $homeDir ".claude\skills\brain-agm\hooks"
+    $claudeHooksDir = Join-Path $homeDir ".claude" "skills" "brain-agm" "hooks"
     if (-not (Test-Path $claudeHooksDir)) {
         New-Item -ItemType Directory -Force -Path $claudeHooksDir | Out-Null
     }
     Copy-Item -Path $hookScript -Destination $claudeHooksDir -Force
-    Write-Success "Hook copiado a: $claudeHooksDir"
+    Write-Success "Hook copied to: $claudeHooksDir"
+
+    $hookConfig = Get-Content (Join-Path $projectRoot "hooks" "claude" "hooks.json") -Raw | ConvertFrom-Json
+    $claudeSettings = Join-Path $homeDir ".claude" "settings.json"
+    if (Test-Path $claudeSettings) {
+        $settings = Get-Content $claudeSettings -Raw | ConvertFrom-Json
+        $backup = "$claudeSettings.backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+        Copy-Item $claudeSettings $backup
+        Write-Success "Backup created: $backup"
+    } else {
+        $settings = [pscustomobject]@{}
+    }
+
+    if (-not $settings.PSObject.Properties['hooks']) {
+        $settings | Add-Member -NotePropertyName hooks -NotePropertyValue ([pscustomobject]@{})
+    }
+    if (-not $settings.hooks.PSObject.Properties['PostToolUse']) {
+        $settings.hooks | Add-Member -NotePropertyName PostToolUse -NotePropertyValue @()
+    }
+
+    $registered = @($settings.hooks.PostToolUse) | Where-Object { $_.hooks.command -like '*check_memory.py*' }
+    if ($registered) {
+        Write-Warning "Hook already registered in settings.json, skipping..."
+    } else {
+        $settings.hooks.PostToolUse = @($settings.hooks.PostToolUse) + @($hookConfig.hooks.PostToolUse)
+        $settings | ConvertTo-Json -Depth 20 | Set-Content -Path $claudeSettings -Encoding UTF8
+        Write-Success "Hook registered in settings.json"
+    }
 } else {
-    Write-Warning "Hook script no encontrado"
+    Write-Warning "Hook script not found"
 }
 
-# 10. Resumen de instalación
+# 10. Installation summary
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Green
-Write-Host "  ✓ Instalación Completada" -ForegroundColor Green
+Write-Host "  ✓ Installation Complete" -ForegroundColor Green
 Write-Host "============================================" -ForegroundColor Green
 Write-Host ""
 
-Write-Host "Archivos instalados:" -ForegroundColor Cyan
-Write-Host "  → Memorias: $memoryBase" -ForegroundColor White
-Write-Host "  → Skill Claude: $claudeSkills" -ForegroundColor White
-Write-Host "  → Config Claude: $claudeAgents" -ForegroundColor White
-Write-Host "  → Config Claude: $claudeMd" -ForegroundColor White
+Write-Host "Installed files:" -ForegroundColor Cyan
+Write-Host "  → Memories: $memoryBase" -ForegroundColor White
+Write-Host "  → Claude skill: $claudeSkills" -ForegroundColor White
+Write-Host "  → Claude config: $claudeAgents" -ForegroundColor White
+Write-Host "  → Claude config: $claudeMd" -ForegroundColor White
 
 if (Test-Path $windsurfBase) {
-    Write-Host "  → Skill Windsurf: $windsurfSkills" -ForegroundColor White
-    Write-Host "  → Config Windsurf: $windsurfAgents" -ForegroundColor White
+    Write-Host "  → Windsurf skill: $windsurfSkills" -ForegroundColor White
+    Write-Host "  → Windsurf config: $windsurfAgents" -ForegroundColor White
 }
 
 Write-Host ""
-Write-Host "Próximos pasos:" -ForegroundColor Yellow
-Write-Host "  1. Abre una nueva sesión de Claude Code" -ForegroundColor White
-Write-Host "  2. Prueba: 'guarda esto en memoria: instalé brain-agm'" -ForegroundColor White
-Write-Host "  3. En otra sesión: 'qué instalamos recientemente?'" -ForegroundColor White
+Write-Host "Next steps:" -ForegroundColor Yellow
+Write-Host "  1. Open a new Claude Code session" -ForegroundColor White
+Write-Host "  2. Try: 'remember this: I installed brain-agm'" -ForegroundColor White
+Write-Host "  3. In another session: 'what did we install recently?'" -ForegroundColor White
 Write-Host ""
-Write-Host "Ver README.md para más información y troubleshooting" -ForegroundColor Cyan
+Write-Host "See README.md for more information and troubleshooting" -ForegroundColor Cyan
 Write-Host ""

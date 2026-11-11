@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Script para buscar en memorias de brain-agm.
+Script to search brain-agm memories.
 
-Uso:
-    python search_memory.py --project <nombre> --query <texto>
-    python search_memory.py --all-projects --query <texto>
+Usage:
+    python search_memory.py --project <name> --query <text>
+    python search_memory.py --all-projects --query <text>
 
-Ejemplo:
+Example:
     python search_memory.py --project api-backend --query "oauth"
-    python search_memory.py --all-projects --query "autenticación"
+    python search_memory.py --all-projects --query "authentication"
 """
 
 import argparse
@@ -16,7 +16,7 @@ import json
 import sys
 from pathlib import Path
 
-# Importar utilidades
+# Import utilities
 import os
 script_dir = Path(__file__).parent
 if str(script_dir) not in sys.path:
@@ -32,16 +32,16 @@ from utils import (
 
 def search_in_project(project, query, limit=5, memory_type=None):
     """
-    Buscar memorias en un proyecto específico.
+    Search memories in a specific project.
 
     Args:
-        project (str): Nombre del proyecto
-        query (str): Texto a buscar
-        limit (int): Número máximo de resultados
-        memory_type (str, optional): Filtrar por tipo
+        project (str): Project name
+        query (str): Text to search for
+        limit (int): Maximum number of results
+        memory_type (str, optional): Filter by type
 
     Returns:
-        list: Lista de memorias encontradas
+        list: List of memories found
     """
     memory_dir = get_memory_dir(project)
 
@@ -50,7 +50,7 @@ def search_in_project(project, query, limit=5, memory_type=None):
 
     results = []
 
-    # Buscar en todos los archivos .md
+    # Search all .md files
     for file_path in memory_dir.glob('*.md'):
         memory = parse_memory(file_path)
 
@@ -60,24 +60,24 @@ def search_in_project(project, query, limit=5, memory_type=None):
         frontmatter = memory['frontmatter']
         content = memory['content']
 
-        # Filtrar por tipo si se especificó
+        # Filter by type if specified
         if memory_type and frontmatter.get('type', '') != memory_type:
             continue
 
-        # Buscar en título
+        # Search the title
         title = frontmatter.get('title', '')
         title_match = query.lower() in title.lower()
 
-        # Buscar en contenido
+        # Search the content
         content_match, matching_lines = search_text(query, content)
 
         if title_match or content_match:
-            # Crear snippet
+            # Build snippet
             if matching_lines:
-                snippet_lines = matching_lines[:3]  # Primeras 3 líneas coincidentes
+                snippet_lines = matching_lines[:3]  # First 3 matching lines
                 snippet = '\n'.join([f"  L{line_num}: {line}" for line_num, line in snippet_lines])
             else:
-                # Si solo coincidió en título, mostrar primeras líneas del contenido
+                # If it only matched the title, show the first content lines
                 content_lines = content.split('\n')[:3]
                 snippet = '\n'.join([f"  {line}" for line in content_lines if line.strip()])
 
@@ -90,31 +90,31 @@ def search_in_project(project, query, limit=5, memory_type=None):
                 'type': frontmatter.get('type', ''),
                 'status': frontmatter.get('status', ''),
                 'snippet': snippet,
-                'relevance': 2 if title_match else 1  # Mayor relevancia si coincide en título
+                'relevance': 2 if title_match else 1  # Higher relevance for title matches
             }
 
             results.append(result)
 
-    # Ordenar por relevancia (descendente)
+    # Sort by relevance (descending)
     results.sort(key=lambda x: x['relevance'], reverse=True)
 
-    # Limitar resultados
+    # Limit results
     return results[:limit]
 
 
 def search_all_projects(query, limit=5, memory_type=None):
     """
-    Buscar memorias en todos los proyectos.
+    Search memories across all projects.
 
     Args:
-        query (str): Texto a buscar
-        limit (int): Número máximo de resultados
-        memory_type (str, optional): Filtrar por tipo
+        query (str): Text to search for
+        limit (int): Maximum number of results
+        memory_type (str, optional): Filter by type
 
     Returns:
-        list: Lista de memorias encontradas
+        list: List of memories found
     """
-    # Detectar OS y obtener ruta base
+    # Detect OS and get the base path
     if sys.platform == 'win32':
         home = Path(os.environ.get('USERPROFILE', os.path.expanduser('~')))
     else:
@@ -127,36 +127,36 @@ def search_all_projects(query, limit=5, memory_type=None):
 
     all_results = []
 
-    # Buscar en cada proyecto
+    # Search each project
     for project_dir in memory_base.iterdir():
         if project_dir.is_dir():
             project_name = project_dir.name
             project_results = search_in_project(project_name, query, limit, memory_type)
             all_results.extend(project_results)
 
-    # Ordenar por relevancia
+    # Sort by relevance
     all_results.sort(key=lambda x: x['relevance'], reverse=True)
 
-    # Limitar resultados
+    # Limit results
     return all_results[:limit]
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Buscar en memorias de brain-agm',
+        description='Search brain-agm memories',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Ejemplos:
-  # Buscar en proyecto actual
+Examples:
+  # Search the current project
   python search_memory.py --query "oauth"
 
-  # Buscar en proyecto específico
-  python search_memory.py --project api-backend --query "autenticación"
+  # Search a specific project
+  python search_memory.py --project api-backend --query "authentication"
 
-  # Buscar en todos los proyectos
-  python search_memory.py --all-projects --query "decisión"
+  # Search all projects
+  python search_memory.py --all-projects --query "decision"
 
-  # Buscar solo decisiones
+  # Search only decisions
   python search_memory.py --query "auth" --type decision
         """
     )
@@ -165,27 +165,27 @@ Ejemplos:
         '--project',
         type=str,
         default=None,
-        help='Nombre del proyecto (default: detectado del directorio actual)'
+        help='Project name (default: detected from the current directory)'
     )
 
     parser.add_argument(
         '--all-projects',
         action='store_true',
-        help='Buscar en todos los proyectos (usar SOLO cuando usuario lo pida explícitamente)'
+        help='Search all projects (use ONLY when the user explicitly asks)'
     )
 
     parser.add_argument(
         '--query',
         type=str,
         required=True,
-        help='Texto a buscar'
+        help='Text to search for'
     )
 
     parser.add_argument(
         '--limit',
         type=int,
         default=5,
-        help='Número máximo de resultados (default: 5)'
+        help='Maximum number of results (default: 5)'
     )
 
     parser.add_argument(
@@ -193,12 +193,12 @@ Ejemplos:
         type=str,
         choices=['plan', 'decision', 'problem', 'user-request'],
         default=None,
-        help='Filtrar por tipo de memoria'
+        help='Filter by memory type'
     )
 
     args = parser.parse_args()
 
-    # Buscar
+    # Search
     if args.all_projects:
         results = search_all_projects(
             query=args.query,
@@ -214,7 +214,7 @@ Ejemplos:
             memory_type=args.type
         )
 
-    # Preparar respuesta
+    # Build response
     response = {
         'success': True,
         'query': args.query,
@@ -222,7 +222,7 @@ Ejemplos:
         'results': results
     }
 
-    # Imprimir resultado como JSON
+    # Print result as JSON
     print(json.dumps(response, indent=2))
 
     sys.exit(0)

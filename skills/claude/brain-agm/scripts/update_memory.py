@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Script para actualizar memorias existentes en brain-agm.
+Script to update existing memories in brain-agm.
 
-Uso:
-    python update_memory.py --project <nombre> --file <archivo> [opciones]
+Usage:
+    python update_memory.py --project <name> --file <file> [options]
 
-Ejemplo:
+Example:
     python update_memory.py --project api-backend --file oauth-impl.md --status archived
     python update_memory.py --project api-backend --file oauth-impl.md --content /tmp/update.md --append
 """
@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
-# Importar utilidades
+# Import utilities
 import os
 script_dir = Path(__file__).parent
 if str(script_dir) not in sys.path:
@@ -33,42 +33,42 @@ from utils import (
 def update_memory(project, filename, new_title=None, new_status=None,
                   content_file=None, append=False, new_tags=None):
     """
-    Actualizar una memoria existente.
+    Update an existing memory.
 
     Args:
-        project (str): Nombre del proyecto
-        filename (str): Nombre del archivo de memoria
-        new_title (str, optional): Nuevo título
-        new_status (str, optional): Nuevo status
-        content_file (str, optional): Archivo con nuevo contenido
-        append (bool): Si True, agregar contenido en lugar de reemplazar
-        new_tags (list, optional): Nuevos tags
+        project (str): Project name
+        filename (str): Memory file name
+        new_title (str, optional): New title
+        new_status (str, optional): New status
+        content_file (str, optional): File with the new content
+        append (bool): If True, append content instead of replacing it
+        new_tags (list, optional): New tags
 
     Returns:
-        dict: Resultado con success, file_path y message
+        dict: Result with success, file_path and message
     """
     memory_dir = get_memory_dir(project)
     file_path = memory_dir / filename
 
-    # Verificar que el archivo existe
+    # Check that the file exists
     if not file_path.exists():
         return {
             'success': False,
-            'message': f"Archivo no encontrado: {file_path}"
+            'message': f"File not found: {file_path}"
         }
 
-    # Leer memoria existente
+    # Read existing memory
     memory = parse_memory(file_path)
     if not memory:
         return {
             'success': False,
-            'message': f"No se pudo parsear memoria: {file_path}"
+            'message': f"Could not parse memory: {file_path}"
         }
 
     frontmatter = memory['frontmatter']
     content = memory['content']
 
-    # Actualizar frontmatter
+    # Update frontmatter
     updated = False
 
     if new_title:
@@ -80,7 +80,7 @@ def update_memory(project, filename, new_title=None, new_status=None,
         if new_status not in valid_statuses:
             return {
                 'success': False,
-                'message': f"Status inválido. Debe ser uno de: {', '.join(valid_statuses)}"
+                'message': f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
             }
         frontmatter['status'] = new_status
         updated = True
@@ -89,13 +89,13 @@ def update_memory(project, filename, new_title=None, new_status=None,
         frontmatter['tags'] = json.dumps(new_tags)
         updated = True
 
-    # Actualizar contenido
+    # Update content
     if content_file:
         content_path = Path(content_file)
         if not content_path.exists():
             return {
                 'success': False,
-                'message': f"Archivo de contenido no encontrado: {content_file}"
+                'message': f"Content file not found: {content_file}"
             }
 
         try:
@@ -104,13 +104,13 @@ def update_memory(project, filename, new_title=None, new_status=None,
         except Exception as e:
             return {
                 'success': False,
-                'message': f"Error leyendo contenido: {e}"
+                'message': f"Error reading content: {e}"
             }
 
         if append:
-            # Agregar nota de actualización
+            # Add an update note
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            content = f"{content}\n\n---\n**Actualizado**: {timestamp}\n\n{new_content}"
+            content = f"{content}\n\n---\n**Updated**: {timestamp}\n\n{new_content}"
         else:
             content = new_content
 
@@ -119,10 +119,10 @@ def update_memory(project, filename, new_title=None, new_status=None,
     if not updated:
         return {
             'success': False,
-            'message': "No se especificaron cambios para actualizar"
+            'message': "No changes specified to update"
         }
 
-    # Construir nuevo archivo
+    # Build the new file
     frontmatter_lines = ['---']
     for key, value in frontmatter.items():
         frontmatter_lines.append(f"{key}: {value}")
@@ -131,15 +131,15 @@ def update_memory(project, filename, new_title=None, new_status=None,
 
     full_content = f"{frontmatter_text}\n\n{content}"
 
-    # Validar formato
+    # Validate format
     is_valid, error_msg = validate_frontmatter(full_content)
     if not is_valid:
         return {
             'success': False,
-            'message': f"Validación falló: {error_msg}"
+            'message': f"Validation failed: {error_msg}"
         }
 
-    # Crear backup
+    # Create backup
     backup_path = file_path.with_suffix('.md.backup')
     try:
         import shutil
@@ -147,15 +147,15 @@ def update_memory(project, filename, new_title=None, new_status=None,
     except Exception as e:
         return {
             'success': False,
-            'message': f"Error creando backup: {e}"
+            'message': f"Error creating backup: {e}"
         }
 
-    # Escribir archivo actualizado
+    # Write updated file
     try:
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(full_content)
     except Exception as e:
-        # Restaurar backup si falla
+        # Restore backup if writing fails
         try:
             import shutil
             shutil.copy2(backup_path, file_path)
@@ -163,10 +163,10 @@ def update_memory(project, filename, new_title=None, new_status=None,
             pass
         return {
             'success': False,
-            'message': f"Error escribiendo archivo: {e}"
+            'message': f"Error writing file: {e}"
         }
 
-    # Eliminar backup si todo salió bien
+    # Delete backup if everything went well
     try:
         backup_path.unlink()
     except:
@@ -183,26 +183,26 @@ def update_memory(project, filename, new_title=None, new_status=None,
                (k == 'tags' and new_tags) or
                (k == 'content' and content_file)
         ],
-        'message': f"Memoria actualizada exitosamente: {file_path}"
+        'message': f"Memory updated successfully: {file_path}"
     }
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Actualizar una memoria existente en brain-agm',
+        description='Update an existing memory in brain-agm',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Ejemplos:
-  # Cambiar status a archived
+Examples:
+  # Change status to archived
   python update_memory.py --project api-backend --file oauth-impl.md --status archived
 
-  # Actualizar contenido (reemplazar)
+  # Update content (replace)
   python update_memory.py --project api-backend --file oauth-impl.md --content /tmp/update.md
 
-  # Agregar contenido
+  # Append content
   python update_memory.py --project api-backend --file oauth-impl.md --content /tmp/update.md --append
 
-  # Cambiar título y tags
+  # Change title and tags
   python update_memory.py --project api-backend --file oauth-impl.md \\
     --title "new-title" --tags "tag1,tag2"
         """
@@ -212,21 +212,21 @@ Ejemplos:
         '--project',
         type=str,
         default=None,
-        help='Nombre del proyecto (default: detectado del directorio actual)'
+        help='Project name (default: detected from the current directory)'
     )
 
     parser.add_argument(
         '--file',
         type=str,
         required=True,
-        help='Nombre del archivo de memoria a actualizar'
+        help='Name of the memory file to update'
     )
 
     parser.add_argument(
         '--title',
         type=str,
         default=None,
-        help='Nuevo título'
+        help='New title'
     )
 
     parser.add_argument(
@@ -234,40 +234,40 @@ Ejemplos:
         type=str,
         choices=['completed', 'in-progress', 'archived'],
         default=None,
-        help='Nuevo status'
+        help='New status'
     )
 
     parser.add_argument(
         '--content',
         type=str,
         default=None,
-        help='Ruta a archivo con nuevo contenido'
+        help='Path to a file with the new content'
     )
 
     parser.add_argument(
         '--append',
         action='store_true',
-        help='Agregar contenido en lugar de reemplazar'
+        help='Append content instead of replacing it'
     )
 
     parser.add_argument(
         '--tags',
         type=str,
         default=None,
-        help='Nuevos tags separados por coma'
+        help='New comma-separated tags'
     )
 
     args = parser.parse_args()
 
-    # Detectar proyecto si no se especificó
+    # Detect the project if not specified
     project = args.project if args.project else get_project_name()
 
-    # Parsear tags
+    # Parse tags
     tags = args.tags.split(',') if args.tags else None
     if tags:
         tags = [tag.strip() for tag in tags]
 
-    # Actualizar memoria
+    # Update memory
     result = update_memory(
         project=project,
         filename=args.file,
@@ -278,7 +278,7 @@ Ejemplos:
         new_tags=tags
     )
 
-    # Imprimir resultado como JSON
+    # Print result as JSON
     print(json.dumps(result, indent=2))
 
     # Exit code

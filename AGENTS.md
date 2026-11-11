@@ -8,5 +8,5 @@
 
 ## Other Rules
 - Don't execute commands or scripts without my explicit confirmation, and briefly explain what you'll do before executing and what each thing is for.
-- Respond only in English.
+- Respond in the same language the user writes in.
 - Don't ask for approval to execute commands or scripts for using the brain-agm tool. I want it to be more natural.

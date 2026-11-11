@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Script para guardar memorias en brain-agm.
+Script to save memories in brain-agm.
 
-Uso:
-    python save_memory.py --project <nombre> --type <tipo> --title <titulo> --content <archivo>
+Usage:
+    python save_memory.py --project <name> --type <type> --title <title> --content <file>
 
-Ejemplo:
+Example:
     python save_memory.py --project api-backend --type decision --title "oauth-implementation" --content /tmp/memory.md
 """
 
@@ -14,7 +14,7 @@ import json
 import sys
 from pathlib import Path
 
-# Importar utilidades
+# Import utilities
 import os
 script_dir = Path(__file__).parent
 if str(script_dir) not in sys.path:
@@ -32,32 +32,32 @@ from utils import (
 
 def save_memory(project, memory_type, title, content_file, tags=None):
     """
-    Guardar una memoria en el sistema.
+    Save a memory in the system.
 
     Args:
-        project (str): Nombre del proyecto
-        memory_type (str): Tipo de memoria (plan|decision|problem|user-request)
-        title (str): Título de la memoria
-        content_file (str): Ruta al archivo con el contenido
-        tags (list, optional): Lista de tags
+        project (str): Project name
+        memory_type (str): Memory type (plan|decision|problem|user-request)
+        title (str): Memory title
+        content_file (str): Path to the file with the content
+        tags (list, optional): List of tags
 
     Returns:
-        dict: Resultado con success, file_path y message
+        dict: Result with success, file_path and message
     """
-    # Validar tipo
+    # Validate type
     valid_types = ['plan', 'decision', 'problem', 'user-request']
     if memory_type not in valid_types:
         return {
             'success': False,
-            'message': f"Tipo inválido. Debe ser uno de: {', '.join(valid_types)}"
+            'message': f"Invalid type. Must be one of: {', '.join(valid_types)}"
         }
 
-    # Leer contenido
+    # Read content
     content_path = Path(content_file)
     if not content_path.exists():
         return {
             'success': False,
-            'message': f"Archivo de contenido no encontrado: {content_file}"
+            'message': f"Content file not found: {content_file}"
         }
 
     try:
@@ -66,26 +66,26 @@ def save_memory(project, memory_type, title, content_file, tags=None):
     except Exception as e:
         return {
             'success': False,
-            'message': f"Error leyendo archivo de contenido: {e}"
+            'message': f"Error reading content file: {e}"
         }
 
-    # Crear slug del título
+    # Create slug from title
     slug = create_slug(title)
     if not slug:
         return {
             'success': False,
-            'message': "Título inválido (no se pudo crear slug)"
+            'message': "Invalid title (could not create slug)"
         }
 
-    # Asegurar que existe el directorio
+    # Make sure the directory exists
     memory_dir = ensure_memory_dir(project)
 
-    # Crear nombre de archivo único
+    # Create a unique file name
     timestamp = get_timestamp().replace(':', '-').replace('T', '_')
     filename = f"{slug}_{timestamp}.md"
     file_path = memory_dir / filename
 
-    # Construir frontmatter
+    # Build frontmatter
     date = get_date()
     tags_str = json.dumps(tags) if tags else "[]"
 
@@ -100,25 +100,25 @@ tags: {tags_str}
 
 """
 
-    # Combinar frontmatter + contenido
+    # Combine frontmatter + content
     full_content = frontmatter + content_body
 
-    # Validar formato
+    # Validate format
     is_valid, error_msg = validate_frontmatter(full_content)
     if not is_valid:
         return {
             'success': False,
-            'message': f"Validación de formato falló: {error_msg}"
+            'message': f"Format validation failed: {error_msg}"
         }
 
-    # Escribir archivo
+    # Write file
     try:
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(full_content)
     except Exception as e:
         return {
             'success': False,
-            'message': f"Error escribiendo archivo: {e}"
+            'message': f"Error writing file: {e}"
         }
 
     return {
@@ -126,20 +126,20 @@ tags: {tags_str}
         'file_path': str(file_path),
         'project': project,
         'title': slug,
-        'message': f"Memoria guardada exitosamente en {file_path}"
+        'message': f"Memory saved successfully at {file_path}"
     }
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Guardar una memoria en brain-agm',
+        description='Save a memory in brain-agm',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Ejemplo:
+Example:
   python save_memory.py --project api-backend --type decision \\
     --title "OAuth Implementation" --content /tmp/memory-content.md
 
-Tipos válidos: plan, decision, problem, user-request
+Valid types: plan, decision, problem, user-request
         """
     )
 
@@ -147,7 +147,7 @@ Tipos válidos: plan, decision, problem, user-request
         '--project',
         type=str,
         default=None,
-        help='Nombre del proyecto (default: detectado del directorio actual)'
+        help='Project name (default: detected from the current directory)'
     )
 
     parser.add_argument(
@@ -155,41 +155,41 @@ Tipos válidos: plan, decision, problem, user-request
         type=str,
         required=True,
         choices=['plan', 'decision', 'problem', 'user-request'],
-        help='Tipo de memoria'
+        help='Memory type'
     )
 
     parser.add_argument(
         '--title',
         type=str,
         required=True,
-        help='Título de la memoria'
+        help='Memory title'
     )
 
     parser.add_argument(
         '--content',
         type=str,
         required=True,
-        help='Ruta al archivo con el contenido de la memoria'
+        help='Path to the file with the memory content'
     )
 
     parser.add_argument(
         '--tags',
         type=str,
         default=None,
-        help='Tags separados por coma (ej: "auth,oauth,security")'
+        help='Comma-separated tags (e.g. "auth,oauth,security")'
     )
 
     args = parser.parse_args()
 
-    # Detectar proyecto si no se especificó
+    # Detect the project if not specified
     project = args.project if args.project else get_project_name()
 
-    # Parsear tags
+    # Parse tags
     tags = args.tags.split(',') if args.tags else None
     if tags:
         tags = [tag.strip() for tag in tags]
 
-    # Guardar memoria
+    # Save memory
     result = save_memory(
         project=project,
         memory_type=args.type,
@@ -198,7 +198,7 @@ Tipos válidos: plan, decision, problem, user-request
         tags=tags
     )
 
-    # Imprimir resultado como JSON
+    # Print result as JSON
     print(json.dumps(result, indent=2))
 
     # Exit code
